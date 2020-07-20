@@ -10,7 +10,7 @@ public class Matrix {
         this.sampleMatrix = new double[height][width];
 
         for (int i = 0; i < height; i++){
-            for (int k = 0; k < width; k++){
+            for (int k = 0; k < width; k++) {
                 this.sampleMatrix[i][k] = values.get(i * width + k);
             }
         }
@@ -41,7 +41,7 @@ public class Matrix {
           if (this.sampleMatrix[i][rowToSwitch] != 0){
               this.sampleMatrix[rowToSwitch] = this.sampleMatrix[i];
               this.sampleMatrix[i] = row;
-
+                break;
           }
        }
 
@@ -65,15 +65,12 @@ public class Matrix {
 
                             //double newNumber = Double.parseDouble(String.format("%.3g%n");
 
-                            this.sampleMatrix[i][k] = this.sampleMatrix[i][k] - this.sampleMatrix[identifier][k] * constant;
+                            this.sampleMatrix[i][k] = (this.sampleMatrix[i][k] - this.sampleMatrix[identifier][k] * constant) / 100 * 100;
                         }
                     }
 
                 }
-
                 identifier += 1;
-
-                System.out.println(Arrays.deepToString(this.sampleMatrix));
             }
 
         return this.sampleMatrix;
