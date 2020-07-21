@@ -6,14 +6,39 @@ import java.util.Arrays;
 public class Matrix {
     double[][] sampleMatrix = new double[0][0];
 
-    public void generateMatrix(ArrayList<Double> values, int width, int height){
-        this.sampleMatrix = new double[height][width];
+    public void generateMatrix(String file){
+        ArrayList<Double> values = new ArrayList<>();
+
+        String[] listOfValues;
+
+        try (BufferedReader br = new BufferedReader(new FileReader("file"))) {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
+            }
+            String everything = sb.toString();
+            listOfValues = everything.split(",");
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        for (String listOfValue : listOfValues) {
+            values.add(Double.parseDouble(listOfValue));
+        }
+
+        this.sampleMatrix = new double[(int) Math.sqrt(values.size())][(int) Math.sqrt(values.size())];
 
         for (int i = 0; i < height; i++){
             for (int k = 0; k < width; k++) {
                 this.sampleMatrix[i][k] = values.get(i * width + k);
             }
         }
+
+
     }
 
     private int recursion(int n){
