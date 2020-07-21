@@ -1,17 +1,24 @@
 package Matrices;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Matrix {
-    double[][] sampleMatrix = new double[0][0];
 
-    public void generateMatrix(String file){
+    private double[][] leftSideValues = new double[0][0];
+    private double[] rightSideValues;
+
+    public void generateMatrix(String coefficientsFile, String constantFile){
         ArrayList<Double> values = new ArrayList<>();
 
-        String[] listOfValues;
+        String[] listOfLeftSideValues = {};
 
-        try (BufferedReader br = new BufferedReader(new FileReader("file"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(coefficientsFile))) {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
@@ -21,83 +28,88 @@ public class Matrix {
                 line = br.readLine();
             }
             String everything = sb.toString();
-            listOfValues = everything.split(",");
+            listOfLeftSideValues = everything.split(",");
         } catch (IOException e){
             e.printStackTrace();
         }
 
-        for (String listOfValue : listOfValues) {
+        for (String listOfValue : listOfLeftSideValues) {
             values.add(Double.parseDouble(listOfValue));
         }
 
-        this.sampleMatrix = new double[(int) Math.sqrt(values.size())][(int) Math.sqrt(values.size())];
+        try {
+           File file = new File(constantFile);
+            Scanner scanner = new Scanner(file);
+            String[] listOfRightSideValues = scanner.next().split(",");
 
-        for (int i = 0; i < height; i++){
-            for (int k = 0; k < width; k++) {
-                this.sampleMatrix[i][k] = values.get(i * width + k);
+            this.rightSideValues = new double[listOfRightSideValues.length];
+
+            for (int i = 0; i < listOfRightSideValues.length; i++){
+                this.rightSideValues[i] =  Double.parseDouble(listOfRightSideValues[i]);
+            }
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        this.leftSideValues = new double[(int) Math.sqrt(values.size())][(int) Math.sqrt(values.size())];
+
+        for (int i = 0; i < this.leftSideValues.length; i++){
+            for (int k = 0; k < this.leftSideValues[i].length; k++) {
+                this.leftSideValues[i][k] = values.get(i * this.leftSideValues[i].length + k);
             }
         }
 
-
     }
 
-    private int recursion(int n){
-        if (n == 0){
-            return 0;
-        }
-
-        if (n == 1){
-            return 1;
-        }
-
-        return recursion(n - 1) + recursion(n - 2);
-    }
-
-    public double[][] getSampleMatrix() {
-        return sampleMatrix;
+    public double[][] getLeftSideValues() {
+        return leftSideValues;
     }
 
     private boolean rowShuffle(int rowToSwitch){
-        double[] row = this.sampleMatrix[rowToSwitch];
-
+        double[] row = this.leftSideValues[rowToSwitch];
+        double constant = this.rightSideValues[rowToSwitch];
         int i;
 
-       for (i = rowToSwitch; i < this.sampleMatrix.length; i++){
-          if (this.sampleMatrix[i][rowToSwitch] != 0){
-              this.sampleMatrix[rowToSwitch] = this.sampleMatrix[i];
-              this.sampleMatrix[i] = row;
-                break;
+       for (i = rowToSwitch; i < this.leftSideValues.length; i++){
+          if (this.leftSideValues[i][rowToSwitch] != 0){
+
+              this.leftSideValues[rowToSwitch] = this.leftSideValues[i];
+              this.leftSideValues[i] = row;
+
+              this.rightSideValues[rowToSwitch] = this.rightSideValues[i];
+              this.rightSideValues[i] = constant;
+
+              break;
           }
        }
 
-       return i == this.sampleMatrix.length;
+       return i == this.leftSideValues.length;
     }
 
     public double[][]  solveMatrixByGaussianElimination(){
          int identifier = 0;
-            while (identifier < this.sampleMatrix.length) {
+            while (identifier < this.leftSideValues.length) {
 
                 boolean newRowFound = false;
 
-                for (int i = identifier + 1; i < this.sampleMatrix.length; i++){
+                for (int i = identifier + 1; i < this.leftSideValues.length; i++){
 
-                    if (this.sampleMatrix[identifier][identifier] == 0){
+                    if (this.leftSideValues[identifier][identifier] == 0){
                         newRowFound = rowShuffle(identifier);
                     }
                     if (!newRowFound) {
-                        double constant = this.sampleMatrix[i][identifier] / this.sampleMatrix[identifier][identifier];
-                        for (int k = identifier; k < this.sampleMatrix[i].length; k++){
-
-                            //double newNumber = Double.parseDouble(String.format("%.3g%n");
-
-                            this.sampleMatrix[i][k] = (this.sampleMatrix[i][k] - this.sampleMatrix[identifier][k] * constant) / 100 * 100;
+                        double constant = this.leftSideValues[i][identifier] / this.leftSideValues[identifier][identifier];
+                        for (int k = identifier; k < this.leftSideValues[i].length; k++){
+                            this.leftSideValues[i][k] = (this.leftSideValues[i][k] - this.leftSideValues[identifier][k] * constant) / 100 * 100;
                         }
+                        this.rightSideValues[i] = (this.rightSideValues[i] - this.rightSideValues[identifier] * constant);
                     }
 
                 }
                 identifier += 1;
             }
 
-        return this.sampleMatrix;
+        return this.leftSideValues;
     }
 }
