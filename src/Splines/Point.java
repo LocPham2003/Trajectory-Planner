@@ -1,5 +1,6 @@
 package Splines;
 
 public class Point {
-    int x,y;
+    Double x;
+    Double y;
 }
