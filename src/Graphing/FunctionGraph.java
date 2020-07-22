@@ -1,7 +1,6 @@
 package Graphing;
 
 import Splines.NaturalCubicSpline;
-import StdDrawLib.StdDraw;
 
 /******************************************************************************
  *  Compilation:  javac FunctionGraph.java
