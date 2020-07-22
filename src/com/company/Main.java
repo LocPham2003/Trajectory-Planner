@@ -8,8 +8,9 @@ public class Main {
         Matrix matrix = new Matrix();
         NaturalCubicSpline naturalCubicSpline = new NaturalCubicSpline();
 
-        matrix.generateMatrix("leftSideValues.txt", "rightSideValues.txt");
         naturalCubicSpline.interpolate();
+
+        matrix.generateMatrix(Constants.leftSideValuesFile, Constants.rightSideValuesFile);
         //System.out.println(Arrays.deepToString(matrix.getLeftSideValues()));
 
         //System.out.println(Arrays.deepToString(matrix.solveMatrixByGaussianElimination()));
