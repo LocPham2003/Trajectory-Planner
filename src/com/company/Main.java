@@ -11,6 +11,16 @@ public class Main {
         naturalCubicSpline.interpolate();
 
         matrix.generateMatrix(Constants.leftSideValuesFile, Constants.rightSideValuesFile);
+
+        for (int i = 0; i < matrix.solveMatrixByGaussianElimination().length; i++){
+            for (int k = 0; k < matrix.solveMatrixByGaussianElimination()[i].length; k++){
+                System.out.print(matrix.solveMatrixByGaussianElimination()[i][k] + " ");
+            }
+            System.out.print(" = " + matrix.getRightSideValues()[i]);
+            System.out.println();
+        }
+
+
         //System.out.println(Arrays.deepToString(matrix.getLeftSideValues()));
 
         //System.out.println(Arrays.deepToString(matrix.solveMatrixByGaussianElimination()));

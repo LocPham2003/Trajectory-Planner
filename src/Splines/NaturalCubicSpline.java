@@ -7,12 +7,17 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class NaturalCubicSpline {
-    ArrayList<Point> listOfPoints = new ArrayList<>();
+    private ArrayList<Point> listOfPoints = new ArrayList<>();
+    private ArrayList<Point> listOfConnectingPoints = new ArrayList<>();
 
-    int numberOfUnknownCoefficients = 0;
+    private StringBuilder leftSideData = new StringBuilder();
+    private StringBuilder rightSideData = new StringBuilder();
+
+    private int numberOfUnknownCoefficients = 0;
 
     private void getListOfPoints() {
         try {
@@ -48,33 +53,23 @@ public class NaturalCubicSpline {
 
     }
 
-    private void generateMatrixValues(ArrayList<ArrayList<String>> leftSide, ArrayList<String> rightSide) {
+    private void generateMatrixValues(ArrayList<String> leftSide, String rightSide) {
         try {
             FileWriter leftSideWriter = new FileWriter(Constants.leftSideValuesFile);
             FileWriter rightSideWriter = new FileWriter(Constants.rightSideValuesFile);
 
-            StringBuilder leftSideData = new StringBuilder();
+            //System.out.println(leftSide);
 
-            for (int i = 0; i < leftSide.size(); i++){
-                for (int k = 0; k < leftSide.get(i).size(); k++){
-                    leftSideData.append(leftSide.get(i).get(k));
-                    if (i != leftSide.size() && k != leftSide.get(i).size()){
-                        leftSideData.append(",");
-                    }
-                }
-                leftSideData.append("\n");
+            for (String i : leftSide) {
+                this.leftSideData.append(i).append(",");
             }
+
+            leftSideData.append("\n");
 
             leftSideWriter.write(leftSideData.toString().substring(0, leftSideData.toString().length() - 2));
             leftSideWriter.close();
 
-            StringBuilder rightSideData = new StringBuilder();
-            for (String i : rightSide){
-                rightSideData.append(i);
-                if (rightSide.indexOf(i) != rightSide.size() - 1) {
-                    rightSideData.append(",");
-                }
-            }
+            this.rightSideData.append(rightSide).append(",");
 
             rightSideWriter.write(rightSideData.toString());
             rightSideWriter.close();
@@ -87,17 +82,19 @@ public class NaturalCubicSpline {
 
     public void interpolate() {
         getListOfPoints();
+        searchForConnectingPoints();
+
         polynomialsCoefficients();
+        firstDerivative();
+        secondDerivative();
+        boundaryCondition();
     }
 
     private void polynomialsCoefficients() {
         //ax^3 + bx^2 + cx + d = y
         //a1x^3 + b1x^2 + c1x^2 + d1 = y
 
-        ArrayList<ArrayList<String>> listOfCoefficients = new ArrayList<>();
-
         ArrayList<String> listOfUnknownCoefficients = new ArrayList<>();
-        ArrayList<String> listOfRightSideValues = new ArrayList<>();
 
         for (int i = 0; i < this.numberOfUnknownCoefficients; i++) {
             listOfUnknownCoefficients.add("0");
@@ -112,18 +109,23 @@ public class NaturalCubicSpline {
 
                 for (int j = 0; j < 4; j++) {
                     switch (j) {
-                        case 0 -> listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 3)));
-                        case 1 -> listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 2)));
-                        case 2 -> listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 1)));
-                        case 3 -> listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 0)));
+                        case 0:
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 3)));
+                            break;
+                        case 1:
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 2)));
+                            break;
+                        case 2:
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 1)));
+                            break;
+                        case 3:
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 0)));
+                            break;
                     }
                 }
 
-                listOfRightSideValues.add(Double.toString(this.listOfPoints.get(pointIndex).y));
+                generateMatrixValues(listOfUnknownCoefficients, Double.toString(this.listOfPoints.get(pointIndex).y));
 
-                listOfCoefficients.add(listOfUnknownCoefficients);
-
-                generateMatrixValues(listOfCoefficients, listOfRightSideValues);
 
                 if (k == 0) {
                     pointIndex++;
@@ -139,17 +141,128 @@ public class NaturalCubicSpline {
 
         }
 
-    }
-
-    private void firstDerivative(double x, double y) {
 
     }
 
-    private void secondDerivative(double x, double y) {
+    private void searchForConnectingPoints() {
+        ArrayList<Point> connectingPoints = new ArrayList<>();
+
+        for (int i = 0; i < this.listOfPoints.size(); i++) {
+            try {
+                if (this.listOfPoints.get(i - 1) != null && this.listOfPoints.get(i + 1) != null) {
+                    connectingPoints.add(this.listOfPoints.get(i));
+                }
+
+            } catch (IndexOutOfBoundsException ignored) {
+
+            }
+        }
+
+
+        this.listOfConnectingPoints = connectingPoints;
+    }
+
+    private void firstDerivative() {
+        //Search only for the middle point
+
+        ArrayList<String> FirstDerivativeUnknownCoefficients = new ArrayList<>();
+
+        for (Point i : this.listOfConnectingPoints) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 3; k++) {
+                    double isNegative = 1;
+
+                    if (j == 1) {
+                        isNegative = -1;
+                    }
+
+                    switch (k) {
+                        case 0:
+                            FirstDerivativeUnknownCoefficients.add(Double.toString(3 * Math.pow(i.x, 2) * isNegative));
+                            break;
+                        case 1:
+                            FirstDerivativeUnknownCoefficients.add(Double.toString(2 * i.x * isNegative));
+                            break;
+                        case 2:
+                            FirstDerivativeUnknownCoefficients.add(Double.toString(isNegative));
+                            break;
+                    }
+                }
+
+                FirstDerivativeUnknownCoefficients.add("0");
+
+            }
+
+            generateMatrixValues(FirstDerivativeUnknownCoefficients, "0");
+
+        }
 
     }
 
-    private void boundaryCondition(double x, double y) {
+    private void secondDerivative() {
+        ArrayList<String> SecondDerivativeUnknownCoefficients = new ArrayList<>();
+
+        for (Point i : this.listOfConnectingPoints) {
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 2; k++) {
+                    double isNegative = 1;
+
+                    if (j == 1) {
+                        isNegative = -1;
+                    }
+
+                    switch (k) {
+                        case 0:
+                            SecondDerivativeUnknownCoefficients.add(Double.toString(6 * i.x * isNegative));
+                            break;
+                        case 1:
+                            SecondDerivativeUnknownCoefficients.add(Double.toString(2 * isNegative));
+                            break;
+                    }
+                }
+
+                SecondDerivativeUnknownCoefficients.add("0");
+                SecondDerivativeUnknownCoefficients.add("0");
+
+            }
+
+            generateMatrixValues(SecondDerivativeUnknownCoefficients, "0");
+
+        }
+    }
+
+    private void boundaryCondition() {
+        //6ax + 2b = y
+        //6axn + 2b = yn
+
+        int pointToUse = 0;
+
+        for (int i = 0; i < 2; i++){
+            ArrayList<String> boundaryConditionCoefficients = new ArrayList<>();
+
+            if (pointToUse == 0){
+                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(0).x));
+                boundaryConditionCoefficients.add("2");
+
+                for (int k = 0; k < 5; k++){
+                    boundaryConditionCoefficients.add("0");
+                }
+
+            } else {
+                for (int k = 0; k < 4; k++){
+                    boundaryConditionCoefficients.add("0");
+                }
+                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(this.listOfPoints.size() - 1).x));
+                boundaryConditionCoefficients.add("2");
+                boundaryConditionCoefficients.add("0");
+                boundaryConditionCoefficients.add("0");
+            }
+
+            generateMatrixValues(boundaryConditionCoefficients, Double.toString(this.listOfPoints.get(pointToUse).y));
+
+            pointToUse = this.listOfPoints.size() - 1;
+
+        }
 
     }
 }

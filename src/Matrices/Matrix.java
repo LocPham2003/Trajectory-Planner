@@ -65,6 +65,8 @@ public class Matrix {
         return leftSideValues;
     }
 
+    public double[] getRightSideValues() { return rightSideValues; }
+
     private boolean rowShuffle(int rowToSwitch){
         double[] row = this.leftSideValues[rowToSwitch];
         double constant = this.rightSideValues[rowToSwitch];
