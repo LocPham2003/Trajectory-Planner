@@ -89,8 +89,9 @@ public class Matrix {
     }
 
     public double[][]  solveMatrixByGaussianElimination(){
-         int identifier = 0;
-            while (identifier < this.leftSideValues.length) {
+        int identifier = 0;
+
+        while (identifier < this.leftSideValues.length) {
 
                 boolean newRowFound = false;
 
@@ -102,7 +103,8 @@ public class Matrix {
                     if (!newRowFound) {
                         double constant = this.leftSideValues[i][identifier] / this.leftSideValues[identifier][identifier];
                         for (int k = identifier; k < this.leftSideValues[i].length; k++){
-                            this.leftSideValues[i][k] = (this.leftSideValues[i][k] - this.leftSideValues[identifier][k] * constant) / 100 * 100;
+
+                            this.leftSideValues[i][k] = this.leftSideValues[i][k] - this.leftSideValues[identifier][k] * constant;
                         }
                         this.rightSideValues[i] = (this.rightSideValues[i] - this.rightSideValues[identifier] * constant);
                     }
