@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -88,9 +90,21 @@ public class Matrix {
        return i == this.leftSideValues.length;
     }
 
-    public double[][]  solveMatrixByGaussianElimination(){
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal(Double.toString(value));
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
+
+    public ArrayList<Double>  solveMatrixByGaussianElimination(){
+        ArrayList<Double> solvedCoefficients = new ArrayList<>();
+
         int identifier = 0;
 
+        //Row echelon form
         while (identifier < this.leftSideValues.length) {
 
                 boolean newRowFound = false;
@@ -113,6 +127,27 @@ public class Matrix {
                 identifier += 1;
             }
 
-        return this.leftSideValues;
+        //Reverse Row echelon form
+        identifier = this.leftSideValues.length - 1;
+        while (identifier >= 0){
+
+            for (int i = identifier - 1; i >= 0; i--){
+                double constant = this.leftSideValues[i][identifier] / this.leftSideValues[identifier][identifier];
+
+                this.leftSideValues[i][identifier] = this.leftSideValues[i][identifier] - this.leftSideValues[identifier][identifier] * constant;
+
+                this.rightSideValues[i] = this.rightSideValues[i] - this.rightSideValues[identifier] * constant;
+
+            }
+
+            identifier--;
+        }
+
+        //Begin solving for coefficients
+         for (identifier = 0; identifier < this.leftSideValues.length; identifier++){
+             solvedCoefficients.add(round(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier],3));
+         }
+
+        return solvedCoefficients;
     }
 }
