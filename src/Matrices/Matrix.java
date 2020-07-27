@@ -90,7 +90,7 @@ public class Matrix {
        return i == this.leftSideValues.length;
     }
 
-    private static double round(double value, int places) {
+    private double round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
 
         BigDecimal bd = new BigDecimal(Double.toString(value));
@@ -98,8 +98,26 @@ public class Matrix {
         return bd.doubleValue();
     }
 
+    private String formatCoefficientsIntoFunctions(ArrayList<Double> coefficients){
+        int numberOfFunctions = coefficients.size() / 4;
 
-    public ArrayList<Double>  solveMatrixByGaussianElimination(){
+        StringBuilder functions = new StringBuilder();
+
+        for (int i = 0; i < numberOfFunctions; i++){
+            for (int k = 3; k >= 0; k--){
+                if (k != 0){
+                    functions.append(coefficients.get(i * 4 + k)).append("x^").append(k).append(" + ");
+                } else {
+                    functions.append(coefficients.get(i * 4 + k)).append(" ");
+                }
+            }
+            functions.append("\n");
+        }
+
+        return functions.toString();
+    }
+
+    public String  solveMatrixByGaussianElimination(){
         ArrayList<Double> solvedCoefficients = new ArrayList<>();
 
         int identifier = 0;
@@ -145,9 +163,9 @@ public class Matrix {
 
         //Begin solving for coefficients
          for (identifier = 0; identifier < this.leftSideValues.length; identifier++){
-             solvedCoefficients.add(round(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier],3));
+             solvedCoefficients.add(this.round(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier],3));
          }
 
-        return solvedCoefficients;
+        return this.formatCoefficientsIntoFunctions(solvedCoefficients);
     }
 }

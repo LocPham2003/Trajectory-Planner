@@ -82,14 +82,24 @@ public class NaturalCubicSpline {
         }
     }
 
-    public void interpolate() {
+    public boolean interpolate() {
         getListOfPoints();
-        searchForConnectingPoints();
 
-        polynomialsCoefficients();
-        firstDerivative();
-        secondDerivative();
-        boundaryCondition();
+        if (this.listOfPoints.size() <= 1){
+            System.out.println("Invalid number of points, unable to interpolate");
+            return false;
+        } else {
+            searchForConnectingPoints();
+
+            polynomialsCoefficients();
+            firstDerivative();
+            secondDerivative();
+            boundaryCondition();
+
+            return true;
+        }
+
+
     }
 
     private void polynomialsCoefficients() {

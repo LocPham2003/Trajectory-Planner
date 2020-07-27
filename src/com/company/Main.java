@@ -10,15 +10,11 @@ public class Main {
         Matrix matrix = new Matrix();
         NaturalCubicSpline naturalCubicSpline = new NaturalCubicSpline();
 
-        naturalCubicSpline.interpolate();
+        if (naturalCubicSpline.interpolate()){
+            matrix.generateMatrix(Constants.leftSideValuesFile, Constants.rightSideValuesFile);
+        }
 
-        matrix.generateMatrix(Constants.leftSideValuesFile, Constants.rightSideValuesFile);
 
-        System.out.println(Arrays.toString(matrix.solveMatrixByGaussianElimination().toArray()));
-
-        //System.out.println(Arrays.deepToString(matrix.getLeftSideValues()));
-
-        //System.out.println(Arrays.deepToString(matrix.solveMatrixByGaussianElimination()));
-
+        System.out.println(matrix.solveMatrixByGaussianElimination());
     }
 }
