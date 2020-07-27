@@ -104,12 +104,14 @@ public class Matrix {
         StringBuilder functions = new StringBuilder();
 
         for (int i = 0; i < numberOfFunctions; i++){
+            int valueToGet = 0;
             for (int k = 3; k >= 0; k--){
                 if (k != 0){
-                    functions.append(coefficients.get(i * 4 + k)).append("x^").append(k).append(" + ");
+                    functions.append(coefficients.get(i * 4 + valueToGet).toString()).append("x^").append(k).append(" + ");
                 } else {
-                    functions.append(coefficients.get(i * 4 + k)).append(" ");
+                    functions.append(coefficients.get(i * 4 + valueToGet)).append(" ");
                 }
+                valueToGet++;
             }
             functions.append("\n");
         }
@@ -166,6 +168,6 @@ public class Matrix {
              solvedCoefficients.add(this.round(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier],3));
          }
 
-        return this.formatCoefficientsIntoFunctions(solvedCoefficients);
+        return formatCoefficientsIntoFunctions(solvedCoefficients);
     }
 }
