@@ -16,16 +16,12 @@ import java.awt.event.MouseEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-
 
 public class Graph extends JFrame{
-   private int prevWidth = 700;
-   private int prevHeight = 700;
+   private int prevWidth = 800;
+   private int prevHeight = 800;
 
    private int pointX, pointY;
-
-   private int prevNumberOfPoints;
 
    private ArrayList<Point> listOfPoints = new ArrayList<>();
    private ArrayList<SplineFunctions> listOfFunctions = new ArrayList<>();
@@ -33,6 +29,9 @@ public class Graph extends JFrame{
    private ArrayList<Point> splinePoints = new ArrayList<>();
 
    private String coordinate;
+
+   private boolean isNewPointAdded = false;
+   private boolean isGraphingNewSpline = false;
 
    public Graph(){
       this.pointX = this.prevWidth / 2 - 2;
@@ -54,6 +53,7 @@ public class Graph extends JFrame{
    }
 
    public void paint(Graphics g){
+      g.clearRect(0, 0, this.getWidth(), this.getHeight());
 
       if (this.getHeight() != this.prevHeight || this.getWidth() != this.prevWidth){
          g.clearRect(this.prevWidth / 2, (int) (this.prevHeight * 0.01),this.prevWidth / 2,(int) (this.prevHeight * 0.98));
@@ -67,9 +67,21 @@ public class Graph extends JFrame{
 
       g.fillOval(this.pointX, this.pointY, 3,3);
 
-      for (Point i : this.splinePoints){
-         g.fillOval((int) (i.getX()), (int) (i.getY()), 3,3);
+      if (this.isNewPointAdded){
+         for (Point i : this.splinePoints){
+         }
+
+         this.isNewPointAdded = false;
       }
+
+      if (this.isGraphingNewSpline){
+         for (Point i : this.splinePoints){
+            g.fillOval((int) (i.getX()), (int) (i.getY()), 3,3);
+         }
+
+         this.isGraphingNewSpline = false;
+      }
+
 
       g.drawString(this.coordinate, pointX + 5, pointY + 5);
 
@@ -82,6 +94,8 @@ public class Graph extends JFrame{
       addMouseListener(new MouseAdapter() {
          public void mouseClicked(MouseEvent me) {
             listOfFunctions.clear();
+
+            isNewPointAdded = true;
 
             coordinate = "X : " + me.getX() + " Y : " + me.getY();
             pointX = me.getX();
@@ -127,8 +141,6 @@ public class Graph extends JFrame{
 
       listOfCoefficients = matrix.solveMatrixByGaussianElimination();
 
-      System.out.println(listOfCoefficients);
-
       for (int k = 0; k < naturalCubicSpline.getNumberOfSplinesRequired(); k++) {
          SplineFunctions splineFunction = new SplineFunctions();
 
@@ -165,14 +177,11 @@ public class Graph extends JFrame{
    private void graphSpline(){
       int currentPoint = 0;
       this.splinePoints.clear();
-
-//      for (SplineFunctions i : listOfFunctions){
-//         System.out.println(i.toString());
-//      }
+      this.isGraphingNewSpline = true;
 
       if (this.listOfPoints.size() >= 2){
          while (currentPoint < this.listOfPoints.size() - 1){
-            for (double x = (this.listOfPoints.get(currentPoint).getX()); x <= this.listOfPoints.get(currentPoint + 1).getX(); x++){
+            for (double x = (this.listOfPoints.get(currentPoint).getX()); x <= this.listOfPoints.get(currentPoint + 1).getX(); x += 0.1){
                double y = (this.listOfFunctions.get(currentPoint).getA() * Math.pow(x ,3) +
                        this.listOfFunctions.get(currentPoint).getB() * Math.pow(x, 2) +
                        this.listOfFunctions.get(currentPoint).getC() * x +
@@ -192,24 +201,7 @@ public class Graph extends JFrame{
 
       }
 
-//      repaint();
-
-
-//      if (this.listOfPoints.size() >= 2){
-//         while (currentPoint < this.listOfPoints.size() - 1){
-//            System.out.println((int) (this.listOfFunctions.get(currentPoint).getA() * Math.pow(this.splinesX ,3) +
-//                 this.listOfFunctions.get(currentPoint).getB() * Math.pow(this.splinesX, 2) +
-//                 this.listOfFunctions.get(currentPoint).getC() * this.splinesX +
-//                    this.listOfFunctions.get(currentPoint).getD()));
-//            currentPoint++;
-//
-//         }
-//
-//      }
-
-//      for (Point i : this.splinePoints){
-//         System.out.println(i.getX() + " " + getY());
-//      }
+      repaint();
 
    }
 
@@ -227,7 +219,7 @@ public class Graph extends JFrame{
 
          //
 
-         fileWriter.write("1,2" + "\n" + "2,3" + "\n" + "3,5");
+         fileWriter.write(stringBuilder.toString());
          fileWriter.close();
 
       } catch (IOException e){

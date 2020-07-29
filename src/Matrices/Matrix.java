@@ -1,7 +1,5 @@
 package Matrices;
 
-import Splines.SplineFunctions;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -41,7 +39,7 @@ public class Matrix {
         }
 
         try {
-           File file = new File(constantFile);
+            File file = new File(constantFile);
             Scanner scanner = new Scanner(file);
             String[] listOfRightSideValues = scanner.next().split(",");
 
@@ -65,25 +63,31 @@ public class Matrix {
 
     }
 
+    public double[][] getLeftSideValues() {
+        return leftSideValues;
+    }
+
+    public double[] getRightSideValues() { return rightSideValues; }
+
     private boolean rowShuffle(int rowToSwitch){
         double[] row = this.leftSideValues[rowToSwitch];
         double constant = this.rightSideValues[rowToSwitch];
         int i;
 
-       for (i = rowToSwitch; i < this.leftSideValues.length; i++){
-          if (this.leftSideValues[i][rowToSwitch] != 0){
+        for (i = rowToSwitch; i < this.leftSideValues.length; i++){
+            if (this.leftSideValues[i][rowToSwitch] != 0){
 
-              this.leftSideValues[rowToSwitch] = this.leftSideValues[i];
-              this.leftSideValues[i] = row;
+                this.leftSideValues[rowToSwitch] = this.leftSideValues[i];
+                this.leftSideValues[i] = row;
 
-              this.rightSideValues[rowToSwitch] = this.rightSideValues[i];
-              this.rightSideValues[i] = constant;
+                this.rightSideValues[rowToSwitch] = this.rightSideValues[i];
+                this.rightSideValues[i] = constant;
 
-              break;
-          }
-       }
+                break;
+            }
+        }
 
-       return i == this.leftSideValues.length;
+        return i == this.leftSideValues.length;
     }
 
     private double round(double value, int places) {
@@ -92,6 +96,27 @@ public class Matrix {
         BigDecimal bd = new BigDecimal(Double.toString(value));
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
+    }
+
+    private String formatCoefficientsIntoFunctions(ArrayList<Double> coefficients){
+        int numberOfFunctions = coefficients.size() / 4;
+
+        StringBuilder functions = new StringBuilder();
+
+        for (int i = 0; i < numberOfFunctions; i++){
+            int valueToGet = 0;
+            for (int k = 3; k >= 0; k--){
+                if (k != 0){
+                    functions.append(coefficients.get(i * 4 + valueToGet).toString()).append("x^").append(k).append(" + ");
+                } else {
+                    functions.append(coefficients.get(i * 4 + valueToGet)).append(" ");
+                }
+                valueToGet++;
+            }
+            functions.append("\n");
+        }
+
+        return functions.toString();
     }
 
     public ArrayList<Double> solveMatrixByGaussianElimination(){

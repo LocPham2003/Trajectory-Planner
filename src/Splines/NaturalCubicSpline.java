@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class NaturalCubicSpline {
@@ -39,7 +40,7 @@ public class NaturalCubicSpline {
                 String[] pointRawContent = i.split(",");
 
                 Point point = new Point();
-                point.setX(Double.parseDouble(pointRawContent[0]));
+                point.setX(Double.parseDouble(pointRawContent[0]));;
                 point.setY(Double.parseDouble(pointRawContent[1]));
 
                 this.listOfPoints.add(point);
@@ -195,7 +196,7 @@ public class NaturalCubicSpline {
                                 FirstDerivativeUnknownCoefficients.add(Double.toString(3 * Math.pow(i.getX(), 2) * isNegative));
                                 break;
                             case 1:
-                                FirstDerivativeUnknownCoefficients.add(Double.toString(2 * i.getY() * isNegative));
+                                FirstDerivativeUnknownCoefficients.add(Double.toString(2 * i.getX() * isNegative));
                                 break;
                             case 2:
                                 FirstDerivativeUnknownCoefficients.add(Double.toString(isNegative));
@@ -300,6 +301,6 @@ public class NaturalCubicSpline {
     }
 
     public int getNumberOfSplinesRequired() {
-        return numberOfSplinesRequired;
+        return this.listOfPoints.size() - 1;
     }
 }
