@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class NaturalCubicSpline {
@@ -40,8 +39,8 @@ public class NaturalCubicSpline {
                 String[] pointRawContent = i.split(",");
 
                 Point point = new Point();
-                point.x = Double.parseDouble(pointRawContent[0]);
-                point.y = Double.parseDouble(pointRawContent[1]);
+                point.setX(Double.parseDouble(pointRawContent[0]));
+                point.setY(Double.parseDouble(pointRawContent[1]));
 
                 this.listOfPoints.add(point);
             }
@@ -122,21 +121,21 @@ public class NaturalCubicSpline {
                 for (int j = 0; j < 4; j++) {
                     switch (j) {
                         case 0:
-                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 3)));
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).getX(), 3)));
                             break;
                         case 1:
-                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 2)));
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).getX(), 2)));
                             break;
                         case 2:
-                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 1)));
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).getX(), 1)));
                             break;
                         case 3:
-                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).x, 0)));
+                            listOfUnknownCoefficients.set(i * 4 + j, Double.toString(Math.pow(this.listOfPoints.get(pointIndex).getX(), 0)));
                             break;
                     }
                 }
 
-                generateMatrixValues(listOfUnknownCoefficients, Double.toString(this.listOfPoints.get(pointIndex).y));
+                generateMatrixValues(listOfUnknownCoefficients, Double.toString(this.listOfPoints.get(pointIndex).getY()));
 
                 if (k == 0) {
                     pointIndex++;
@@ -193,10 +192,10 @@ public class NaturalCubicSpline {
                     for (int k = 0; k < 3; k++) {
                         switch (k) {
                             case 0:
-                                FirstDerivativeUnknownCoefficients.add(Double.toString(3 * Math.pow(i.x, 2) * isNegative));
+                                FirstDerivativeUnknownCoefficients.add(Double.toString(3 * Math.pow(i.getX(), 2) * isNegative));
                                 break;
                             case 1:
-                                FirstDerivativeUnknownCoefficients.add(Double.toString(2 * i.x * isNegative));
+                                FirstDerivativeUnknownCoefficients.add(Double.toString(2 * i.getY() * isNegative));
                                 break;
                             case 2:
                                 FirstDerivativeUnknownCoefficients.add(Double.toString(isNegative));
@@ -240,7 +239,7 @@ public class NaturalCubicSpline {
                     for (int k = 0; k < 2; k++) {
                         switch (k) {
                             case 0:
-                                SecondDerivativeUnknownCoefficients.add(Double.toString(6 * i.x * isNegative));
+                                SecondDerivativeUnknownCoefficients.add(Double.toString(6 * i.getX() * isNegative));
                                 break;
                             case 1:
                                 SecondDerivativeUnknownCoefficients.add(Double.toString(2 * isNegative));
@@ -275,7 +274,7 @@ public class NaturalCubicSpline {
             ArrayList<String> boundaryConditionCoefficients = new ArrayList<>();
 
             if (pointToUse == 0){
-                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(0).x));
+                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(0).getX()));
                 boundaryConditionCoefficients.add("2");
 
                 for (int k = 0; k < this.numberOfUnknownCoefficients - 2; k++){
@@ -286,7 +285,7 @@ public class NaturalCubicSpline {
                 for (int k = 0; k < this.numberOfUnknownCoefficients - 4; k++){
                     boundaryConditionCoefficients.add("0");
                 }
-                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(this.listOfPoints.size() - 1).x));
+                boundaryConditionCoefficients.add(Double.toString(6 * this.listOfPoints.get(this.listOfPoints.size() - 1).getX()));
                 boundaryConditionCoefficients.add("2");
                 boundaryConditionCoefficients.add("0");
                 boundaryConditionCoefficients.add("0");
@@ -298,5 +297,9 @@ public class NaturalCubicSpline {
 
         }
 
+    }
+
+    public int getNumberOfSplinesRequired() {
+        return numberOfSplinesRequired;
     }
 }

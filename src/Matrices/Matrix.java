@@ -1,5 +1,7 @@
 package Matrices;
 
+import Splines.SplineFunctions;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -63,12 +65,6 @@ public class Matrix {
 
     }
 
-    public double[][] getLeftSideValues() {
-        return leftSideValues;
-    }
-
-    public double[] getRightSideValues() { return rightSideValues; }
-
     private boolean rowShuffle(int rowToSwitch){
         double[] row = this.leftSideValues[rowToSwitch];
         double constant = this.rightSideValues[rowToSwitch];
@@ -98,28 +94,7 @@ public class Matrix {
         return bd.doubleValue();
     }
 
-    private String formatCoefficientsIntoFunctions(ArrayList<Double> coefficients){
-        int numberOfFunctions = coefficients.size() / 4;
-
-        StringBuilder functions = new StringBuilder();
-
-        for (int i = 0; i < numberOfFunctions; i++){
-            int valueToGet = 0;
-            for (int k = 3; k >= 0; k--){
-                if (k != 0){
-                    functions.append(coefficients.get(i * 4 + valueToGet).toString()).append("x^").append(k).append(" + ");
-                } else {
-                    functions.append(coefficients.get(i * 4 + valueToGet)).append(" ");
-                }
-                valueToGet++;
-            }
-            functions.append("\n");
-        }
-
-        return functions.toString();
-    }
-
-    public String  solveMatrixByGaussianElimination(){
+    public ArrayList<Double> solveMatrixByGaussianElimination(){
         ArrayList<Double> solvedCoefficients = new ArrayList<>();
 
         int identifier = 0;
@@ -127,25 +102,25 @@ public class Matrix {
         //Row echelon form
         while (identifier < this.leftSideValues.length) {
 
-                boolean newRowFound = false;
+            boolean newRowFound = false;
 
-                for (int i = identifier + 1; i < this.leftSideValues.length; i++){
+            for (int i = identifier + 1; i < this.leftSideValues.length; i++){
 
-                    if (this.leftSideValues[identifier][identifier] == 0){
-                        newRowFound = rowShuffle(identifier);
-                    }
-                    if (!newRowFound) {
-                        double constant = this.leftSideValues[i][identifier] / this.leftSideValues[identifier][identifier];
-                        for (int k = identifier; k < this.leftSideValues[i].length; k++){
-
-                            this.leftSideValues[i][k] = this.leftSideValues[i][k] - this.leftSideValues[identifier][k] * constant;
-                        }
-                        this.rightSideValues[i] = (this.rightSideValues[i] - this.rightSideValues[identifier] * constant);
-                    }
-
+                if (this.leftSideValues[identifier][identifier] == 0){
+                    newRowFound = rowShuffle(identifier);
                 }
-                identifier += 1;
+                if (!newRowFound) {
+                    double constant = this.leftSideValues[i][identifier] / this.leftSideValues[identifier][identifier];
+                    for (int k = identifier; k < this.leftSideValues[i].length; k++){
+
+                        this.leftSideValues[i][k] = this.leftSideValues[i][k] - this.leftSideValues[identifier][k] * constant;
+                    }
+                    this.rightSideValues[i] = (this.rightSideValues[i] - this.rightSideValues[identifier] * constant);
+                }
+
             }
+            identifier += 1;
+        }
 
         //Reverse Row echelon form
         identifier = this.leftSideValues.length - 1;
@@ -164,10 +139,10 @@ public class Matrix {
         }
 
         //Begin solving for coefficients
-         for (identifier = 0; identifier < this.leftSideValues.length; identifier++){
-             solvedCoefficients.add(this.round(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier],3));
-         }
+        for (identifier = 0; identifier < this.leftSideValues.length; identifier++){
+            solvedCoefficients.add(this.rightSideValues[identifier] / this.leftSideValues[identifier][identifier]);
+        }
 
-        return formatCoefficientsIntoFunctions(solvedCoefficients);
+        return solvedCoefficients;
     }
 }
