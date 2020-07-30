@@ -24,6 +24,8 @@ public class Graph extends JFrame{
 
    private ArrayList<Point> splinePoints = new ArrayList<>();
 
+   private int prevWidth = 700;
+   private int prevHeight = 700;
 
    public Graph(){
       setTitle("c   u   r   v   y   b   o   i   s");
@@ -31,7 +33,7 @@ public class Graph extends JFrame{
       mouseEvents();
       keyEvents();
 
-      setSize(700, 700);
+      setSize(prevWidth, prevHeight);
 
       setResizable(true);
       setVisible(true);
@@ -42,21 +44,31 @@ public class Graph extends JFrame{
    public void paint(Graphics g){
       g.clearRect(0, 0, this.getWidth(), this.getHeight());
 
+      int widthChange = this.getWidth() - this.prevWidth;
+      int heightChange = this.getHeight() - this.prevHeight;
+
       g.drawLine(this.getWidth() / 2, (int) (this.getHeight() * 0.01),this.getWidth() / 2,(int) (this.getHeight() * 0.98));
       g.drawLine((int) (this.getWidth() * 0.01),this.getHeight() / 2, (int) (this.getWidth() * 0.98),this.getHeight() / 2);
 
        g.setColor(Color.red);
 
        for (Point i : this.listOfInterpolatedPoints){
-           g.fillOval((int) i.getX(), (int) i.getY(), 5,5);
-           g.drawString("X : " + i.getX() + " Y : " + i.getY(), (int) (i.getX() + 5), (int) (i.getY() + 5));
+           i.setX(i.getX() + widthChange);
+           i.setY(i.getY() + heightChange);
+           g.fillOval((int) i.getX(), (int) i.getY() , 5,5);
+           g.drawString("X : " + i.getX() + " Y : " + i.getY() , (int) (i.getX() + 5), (int) (i.getY() + 5));
        }
 
        g.setColor(Color.blue);
 
        for (Point i : this.splinePoints){
+           i.setX(i.getX() + widthChange);
+           i.setY(i.getY() + heightChange);
            g.fillOval((int) (i.getX()), (int) (i.getY()), 3,3);
        }
+
+       this.prevWidth = this.getWidth();
+       this.prevHeight = this.getHeight();
 
    }
 
