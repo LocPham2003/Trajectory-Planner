@@ -18,33 +18,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Graph extends JFrame{
-   private int prevWidth = 800;
-   private int prevHeight = 800;
-
-   private int pointX, pointY;
-
-   private ArrayList<Point> listOfPoints = new ArrayList<>();
+   private ArrayList<Point> listOfInterpolatedPoints = new ArrayList<>();
    private ArrayList<SplineFunctions> listOfFunctions = new ArrayList<>();
+   private ArrayList<Point> listOfUnsortedPoints = new ArrayList<>();
 
    private ArrayList<Point> splinePoints = new ArrayList<>();
 
-   private String coordinate;
-
-   private boolean isNewPointAdded = false;
-   private boolean isGraphingNewSpline = false;
 
    public Graph(){
-      this.pointX = this.prevWidth / 2 - 2;
-      this.pointY = this.prevHeight / 2 - 2;
-
-      this.coordinate = "";
-
-      setTitle("Trajectory");
+      setTitle("c   u   r   v   y   b   o   i   s");
 
       mouseEvents();
       keyEvents();
 
-      setSize(this.prevWidth, this.prevHeight);
+      setSize(700, 700);
 
       setResizable(true);
       setVisible(true);
@@ -55,38 +42,21 @@ public class Graph extends JFrame{
    public void paint(Graphics g){
       g.clearRect(0, 0, this.getWidth(), this.getHeight());
 
-      if (this.getHeight() != this.prevHeight || this.getWidth() != this.prevWidth){
-         g.clearRect(this.prevWidth / 2, (int) (this.prevHeight * 0.01),this.prevWidth / 2,(int) (this.prevHeight * 0.98));
-         g.clearRect((int) (this.prevWidth * 0.01),this.prevHeight / 2, (int) (this.prevWidth * 0.98),this.prevHeight / 2);
-      }
-
       g.drawLine(this.getWidth() / 2, (int) (this.getHeight() * 0.01),this.getWidth() / 2,(int) (this.getHeight() * 0.98));
       g.drawLine((int) (this.getWidth() * 0.01),this.getHeight() / 2, (int) (this.getWidth() * 0.98),this.getHeight() / 2);
 
-      g.setColor(Color.blue);
+       g.setColor(Color.red);
 
-      g.fillOval(this.pointX, this.pointY, 3,3);
+       for (Point i : this.listOfInterpolatedPoints){
+           g.fillOval((int) i.getX(), (int) i.getY(), 5,5);
+           g.drawString("X : " + i.getX() + " Y : " + i.getY(), (int) (i.getX() + 5), (int) (i.getY() + 5));
+       }
 
-      if (this.isNewPointAdded){
-         for (Point i : this.splinePoints){
-         }
+       g.setColor(Color.blue);
 
-         this.isNewPointAdded = false;
-      }
-
-      if (this.isGraphingNewSpline){
-         for (Point i : this.splinePoints){
-            g.fillOval((int) (i.getX()), (int) (i.getY()), 3,3);
-         }
-
-         this.isGraphingNewSpline = false;
-      }
-
-
-      g.drawString(this.coordinate, pointX + 5, pointY + 5);
-
-      this.prevWidth = this.getWidth();
-      this.prevHeight = this.getHeight();
+       for (Point i : this.splinePoints){
+           g.fillOval((int) (i.getX()), (int) (i.getY()), 3,3);
+       }
 
    }
 
@@ -95,22 +65,19 @@ public class Graph extends JFrame{
          public void mouseClicked(MouseEvent me) {
             listOfFunctions.clear();
 
-            isNewPointAdded = true;
-
-            coordinate = "X : " + me.getX() + " Y : " + me.getY();
-            pointX = me.getX();
-            pointY = me.getY();
-
             Point newPoint = new Point();
-            newPoint.setX((double) pointX);
-            newPoint.setY((double) pointY);
+            newPoint.setX((double) me.getX());
+            newPoint.setY((double) me.getY());
 
-            listOfPoints.add(newPoint);
+            listOfInterpolatedPoints.add(newPoint);
+
+            listOfUnsortedPoints.add(newPoint);
 
             repaint();
 
             generatePoints();
             calculateSpline();
+            graphSpline();
 
          }
 
@@ -122,16 +89,56 @@ public class Graph extends JFrame{
          @Override
          public void keyTyped(KeyEvent e) {
             if (e.getKeyChar() == 'u'){
-               System.out.println("Hi");
+                if (listOfInterpolatedPoints.size() > 1){
+
+                    listOfInterpolatedPoints.remove(listOfUnsortedPoints.get(listOfUnsortedPoints.size() - 1));
+
+                    listOfUnsortedPoints.remove(listOfUnsortedPoints.size() - 1);
+
+                    generatePoints();
+                    calculateSpline();
+                    graphSpline();
+
+                } else if (listOfInterpolatedPoints.size() == 1){
+                    listOfInterpolatedPoints.remove(0);
+
+                    repaint();
+                }
             }
          }
       });
    }
 
+    //Get mouse coordinates to calculate spline functions
+    private void generatePoints(){
+        try{
+            FileWriter fileWriter = new FileWriter("Points.txt");
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            this.listOfInterpolatedPoints.sort(new SortByX());
+
+            for (Point i : this.listOfInterpolatedPoints){
+                stringBuilder.append(i.getX()).append(",").append(i.getY()).append("\n");
+            }
+
+            //
+
+            fileWriter.write(stringBuilder.toString());
+            fileWriter.close();
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+    }
+
    //Generate spline graph
    private void calculateSpline() {
       NaturalCubicSpline naturalCubicSpline = new NaturalCubicSpline();
       Matrix matrix = new Matrix();
+
+      this.listOfFunctions.clear();
 
       ArrayList<Double> listOfCoefficients;
 
@@ -170,18 +177,15 @@ public class Graph extends JFrame{
 
       }
 
-     graphSpline();
-
    }
 
    private void graphSpline(){
       int currentPoint = 0;
       this.splinePoints.clear();
-      this.isGraphingNewSpline = true;
 
-      if (this.listOfPoints.size() >= 2){
-         while (currentPoint < this.listOfPoints.size() - 1){
-            for (double x = (this.listOfPoints.get(currentPoint).getX()); x <= this.listOfPoints.get(currentPoint + 1).getX(); x += 0.1){
+      if (this.listOfInterpolatedPoints.size() >= 2){
+         while (currentPoint < this.listOfInterpolatedPoints.size() - 1){
+            for (double x = (this.listOfInterpolatedPoints.get(currentPoint).getX()); x <= this.listOfInterpolatedPoints.get(currentPoint + 1).getX(); x += 0.05){
                double y = (this.listOfFunctions.get(currentPoint).getA() * Math.pow(x ,3) +
                        this.listOfFunctions.get(currentPoint).getB() * Math.pow(x, 2) +
                        this.listOfFunctions.get(currentPoint).getC() * x +
@@ -205,27 +209,5 @@ public class Graph extends JFrame{
 
    }
 
-   private void generatePoints(){
-      try{
-         FileWriter fileWriter = new FileWriter("Points.txt");
-
-         StringBuilder stringBuilder = new StringBuilder();
-
-         this.listOfPoints.sort(new SortByX());
-
-         for (Point i : this.listOfPoints){
-            stringBuilder.append(i.getX()).append(",").append(i.getY()).append("\n");
-         }
-
-         //
-
-         fileWriter.write(stringBuilder.toString());
-         fileWriter.close();
-
-      } catch (IOException e){
-         e.printStackTrace();
-      }
-
-   }
 }
 
