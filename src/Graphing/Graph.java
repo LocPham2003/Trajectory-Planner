@@ -14,7 +14,7 @@
     import java.io.IOException;
     import java.util.ArrayList;
 
-    public class Graph extends JFrame{
+    public class Graph extends JFrame implements ActionListener{
        private ArrayList<Point> listOfInterpolatedPoints = new ArrayList<>();
        private ArrayList<SplineFunctions> listOfFunctions = new ArrayList<>();
        private ArrayList<Point> listOfUnsortedPoints = new ArrayList<>();
@@ -25,15 +25,7 @@
        private int prevHeight = 700;
 
        private int time = 0;
-
-       private boolean timerRunning = false;
-
-        private Timer t = new javax.swing.Timer(1, e -> {
-            time++;
-            repaint();
-            run();
-        });
-
+       private Timer timer = new Timer(1,this);
 
         public Graph(){
           setTitle("c   u   r   v   y   b   o   i   s");
@@ -43,57 +35,60 @@
 
           setSize(prevWidth, prevHeight);
 
-          setResizable(true);
+          setResizable(false);
           setVisible(true);
           setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
        }
 
        public void paint(Graphics g){
-           if (!timerRunning) {
-               g.clearRect(0, 0, this.getWidth(), this.getHeight());
-           }
+           if (!this.timer.isRunning()){
 
-          int widthChange = this.getWidth() - this.prevWidth;
-          int heightChange = this.getHeight() - this.prevHeight;
+           g.clearRect(0,0,this.getWidth(), this.getHeight());
 
-          g.drawLine(this.getWidth() / 2, (int) (this.getHeight() * 0.01),this.getWidth() / 2,(int) (this.getHeight() * 0.98));
-          g.drawLine((int) (this.getWidth() * 0.01),this.getHeight() / 2, (int) (this.getWidth() * 0.98),this.getHeight() / 2);
+           g.drawLine(this.getWidth() / 2, (int) (this.getHeight() * 0.01),this.getWidth() / 2,(int) (this.getHeight() * 0.98));
+           g.drawLine((int) (this.getWidth() * 0.01),this.getHeight() / 2, (int) (this.getWidth() * 0.98),this.getHeight() / 2);
+
+           int widthChange = this.getWidth() - this.prevWidth;
+           int heightChange = this.getHeight() - this.prevHeight;
 
            g.setColor(Color.red);
-                for (Point i : this.listOfInterpolatedPoints){
-                    i.setX(i.getX() + widthChange);
-                    i.setY(i.getY() + heightChange);
-                    g.fillOval((int) i.getX(), (int) i.getY() , 20,20);
-                    g.drawString("X : " + i.getX() + " Y : " + i.getY() , (int) (i.getX() + 20), (int) (i.getY() + 10));
-                }
 
-                g.setColor(Color.blue);
+           for (Point i : this.listOfInterpolatedPoints){
+               i.setX(i.getX() + widthChange);
+               i.setY(i.getY() + heightChange);
+               g.fillOval((int) i.getX(), (int) i.getY() , 20,20);
+               g.drawString("X : " + i.getX() + " Y : " + i.getY() , (int) (i.getX() + 20), (int) (i.getY() + 10));
+           }
 
-                for (Point i : this.splinePoints){
-                    i.setX(i.getX() + widthChange);
-                    i.setY(i.getY() + heightChange);
-                    g.fillOval((int) (i.getX()), (int) (i.getY()), 25,25);
-                }
+           g.setColor(Color.blue);
 
+           for (Point i : this.splinePoints){
+               i.setX(i.getX() + widthChange);
+               i.setY(i.getY() + heightChange);
+               g.fillOval((int) (i.getX()), (int) (i.getY()), 25,25);
+           }
 
+           if (this.splinePoints.size() >= 1) {
+               g.setColor(Color.cyan);
+               g.fillOval((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25,25);
+           }
 
-           g.setColor(Color.gray);
-            if (timerRunning){
-                if (time != 0){
-                    g.clearRect((int) this.splinePoints.get(time - 1).getX(), (int) this.splinePoints.get(time - 1).getY(), 25,25);
-                }
+           } else {
+               g.clearRect(0,0,this.getWidth(), this.getHeight());
 
-                g.fillOval((int) this.splinePoints.get(time).getX(), (int) this.splinePoints.get(time).getY(), 25,25);
+               g.drawLine(this.getWidth() / 2, (int) (this.getHeight() * 0.01),this.getWidth() / 2,(int) (this.getHeight() * 0.98));
+               g.drawLine((int) (this.getWidth() * 0.01),this.getHeight() / 2, (int) (this.getWidth() * 0.98),this.getHeight() / 2);
 
-            }
+               g.setColor(Color.cyan);
+               g.fillOval((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25,25);
+
+           }
 
            this.prevWidth = this.getWidth();
            this.prevHeight = this.getHeight();
 
        }
-
-
 
        private void mouseEvents(){
           addMouseListener(new MouseAdapter() {
@@ -112,9 +107,7 @@
                 calculateSpline();
                 graphSpline();
 
-                System.out.println(splinePoints.size());
 
-                run();
              }
 
           });
@@ -135,11 +128,18 @@
                         calculateSpline();
                         graphSpline();
 
-                        run();
-
                     } else if (listOfInterpolatedPoints.size() == 1){
                         listOfInterpolatedPoints.remove(0);
 
+                        repaint();
+                    }
+                }
+
+                if (e.getKeyChar() == 'p'){
+                    if (!timer.isRunning()){
+                        timer.start();
+                    } else {
+                        timer.stop();
                         repaint();
                     }
                 }
@@ -245,19 +245,16 @@
 
        }
 
-       private void run(){
-            if (!t.isRunning()){
-                t.start();
-                this.timerRunning = true;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (time == this.splinePoints.size() - 1){
+                timer.stop();
+                time = 0;
+                repaint();
+            } else {
+                time++;
+                repaint();
             }
-
-           if (this.time == this.splinePoints.size()){
-               t.stop();
-               this.timerRunning = false;
-           }
-       }
-
-
-
+        }
     }
 
