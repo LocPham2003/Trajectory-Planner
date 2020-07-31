@@ -2,7 +2,6 @@
 
     import Matrices.Matrix;
     import Splines.NaturalCubicSpline;
-    import Splines.Point;
     import Splines.SplineFunctions;
     import com.company.Constants;
     import com.company.SortByX;
@@ -28,16 +27,24 @@
        private Timer timer = new Timer(1,this);
 
         public Graph(){
-          setTitle("c   u   r   v   y   b   o   i   s");
+          setTitle("Trajectory");
+          setSize(prevWidth, prevHeight);
+
+          JButton button = new JButton("Click Here..!");
+          button.setBounds(50,100,100,50); /*Distance from left,
+                      Distance from top,length of button, height of button*/
+          add(button);
+
+          setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
 
           mouseEvents();
           keyEvents();
 
-          setSize(prevWidth, prevHeight);
+          add(button);
 
-          setResizable(false);
+          setResizable(true);
           setVisible(true);
-          setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
        }
 
@@ -52,21 +59,16 @@
            int widthChange = this.getWidth() - this.prevWidth;
            int heightChange = this.getHeight() - this.prevHeight;
 
-           g.setColor(Color.red);
-
-           for (Point i : this.listOfInterpolatedPoints){
-               i.setX(i.getX() + widthChange);
-               i.setY(i.getY() + heightChange);
-               g.fillOval((int) i.getX(), (int) i.getY() , 20,20);
-               g.drawString("X : " + i.getX() + " Y : " + i.getY() , (int) (i.getX() + 20), (int) (i.getY() + 10));
-           }
-
            g.setColor(Color.blue);
 
            for (Point i : this.splinePoints){
                i.setX(i.getX() + widthChange);
                i.setY(i.getY() + heightChange);
                g.fillOval((int) (i.getX()), (int) (i.getY()), 25,25);
+           }
+
+           for (Point i : this.listOfInterpolatedPoints){
+               i.draw(g);
            }
 
            if (this.splinePoints.size() >= 1) {
@@ -95,11 +97,27 @@
              public void mouseClicked(MouseEvent me) {
                 listOfFunctions.clear();
 
+                 for (Point p : listOfInterpolatedPoints) {//iterate through each points
+                     if (p.getBounds().contains(me.getPoint())) {//get the point bounds and check if mouse click was within its bounds
+                         if (!p.isSelected()) {//check if ball has been clicked on
+                             p.setSelected(true);
+                         } else {
+                             p.setSelected(false);
+                         }
+                         repaint(); //so point color change will be shown
+                     }
+                 }
+
+                double pointRadius = 25.0;
+
                 Point newPoint = new Point();
                 newPoint.setX((double) me.getX());
                 newPoint.setY((double) me.getY());
+                newPoint.setRadius(pointRadius);
 
-                listOfInterpolatedPoints.add(newPoint);
+                 //check that we dont go offscreen by subtarcting its radius unless its x and y are not bigger than radius
+
+                listOfInterpolatedPoints.add(newPoint);//add ball to panel to be drawn
 
                 listOfUnsortedPoints.add(newPoint);
 
@@ -107,10 +125,11 @@
                 calculateSpline();
                 graphSpline();
 
-
              }
 
           });
+
+
        }
 
        private void keyEvents(){

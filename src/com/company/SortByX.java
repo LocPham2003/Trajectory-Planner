@@ -1,6 +1,6 @@
 package com.company;
 
-import Splines.Point;
+import Graphing.Point;
 
 import java.util.Comparator;
 
