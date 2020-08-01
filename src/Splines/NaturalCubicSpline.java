@@ -1,13 +1,13 @@
 package Splines;
 
 
+import Graphing.Point;
 import com.company.Constants;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class NaturalCubicSpline {

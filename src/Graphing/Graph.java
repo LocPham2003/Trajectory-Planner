@@ -1,18 +1,17 @@
     package Graphing;
 
     import Matrices.Matrix;
-    import Splines.NaturalCubicSpline;
-    import Splines.Point;
-    import Splines.SplineFunctions;
-    import com.company.Constants;
-    import com.company.SortByX;
+import Splines.NaturalCubicSpline;
+import Splines.SplineFunctions;
+import com.company.Constants;
+import com.company.SortByX;
 
-    import javax.swing.*;
-    import java.awt.*;
-    import java.awt.event.*;
-    import java.io.FileWriter;
-    import java.io.IOException;
-    import java.util.ArrayList;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 
     public class Graph extends JFrame implements ActionListener{
        private ArrayList<Point> listOfInterpolatedPoints = new ArrayList<>();
@@ -25,23 +24,26 @@
        private int prevHeight = 700;
 
        private int time = 0;
-       private Timer timer = new Timer(1,this);
+       private Timer timer = new Timer(5,this);
+
+       private Point rootPoint = new Point();
 
         public Graph(){
-          setTitle("c   u   r   v   y   b   o   i   s");
+          setTitle("Trajectory");
+          setSize(prevWidth, prevHeight);
 
+          setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+          configureButtons();
           mouseEvents();
           keyEvents();
 
-          setSize(prevWidth, prevHeight);
-
-          setResizable(false);
+          setResizable(true);
           setVisible(true);
-          setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
        }
 
-       public void paint(Graphics g){
+        public void paint(Graphics g){
            if (!this.timer.isRunning()){
 
            g.clearRect(0,0,this.getWidth(), this.getHeight());
@@ -52,21 +54,16 @@
            int widthChange = this.getWidth() - this.prevWidth;
            int heightChange = this.getHeight() - this.prevHeight;
 
-           g.setColor(Color.red);
-
-           for (Point i : this.listOfInterpolatedPoints){
-               i.setX(i.getX() + widthChange);
-               i.setY(i.getY() + heightChange);
-               g.fillOval((int) i.getX(), (int) i.getY() , 20,20);
-               g.drawString("X : " + i.getX() + " Y : " + i.getY() , (int) (i.getX() + 20), (int) (i.getY() + 10));
-           }
-
-           g.setColor(Color.blue);
-
            for (Point i : this.splinePoints){
                i.setX(i.getX() + widthChange);
                i.setY(i.getY() + heightChange);
                g.fillOval((int) (i.getX()), (int) (i.getY()), 25,25);
+           }
+
+           g.setColor(Color.blue);
+
+               for (Point i : this.listOfInterpolatedPoints){
+               i.draw(g);
            }
 
            if (this.splinePoints.size() >= 1) {
@@ -90,31 +87,97 @@
 
        }
 
-       private void mouseEvents(){
-          addMouseListener(new MouseAdapter() {
-             public void mouseClicked(MouseEvent me) {
+        private void configureButtons() {
+            JButton button = new JButton("Add new Point");
+            JPanel controlPanel = new JPanel();
+
+            button.setFocusable(false);
+            button.setVisible(true);
+
+            controlPanel.add(button);
+
+            add(controlPanel,BorderLayout.SOUTH);
+
+            button.addActionListener(e -> {
                 listOfFunctions.clear();
 
-                Point newPoint = new Point();
-                newPoint.setX((double) me.getX());
-                newPoint.setY((double) me.getY());
+                double pointRadius = 25.0;
 
-                listOfInterpolatedPoints.add(newPoint);
+                Point newPoint = new Point();
+                newPoint.setX((double) getWidth() / 2);
+                newPoint.setY((double) getHeight() / 2);
+                newPoint.setRadius(pointRadius);
+
+                //check that we dont go offscreen by subtarcting its radius unless its x and y are not bigger than radius
+
+                button.setVisible(true);
+
+                listOfInterpolatedPoints.add(newPoint);//add ball to panel to be drawn
 
                 listOfUnsortedPoints.add(newPoint);
 
                 generatePoints();
                 calculateSpline();
                 graphSpline();
+            });
+        }
+
+       private void mouseEvents(){
+          addMouseListener(new MouseAdapter() {
+             @Override
+              public void mousePressed(MouseEvent e) {
+                  for (Point p : listOfInterpolatedPoints) {//iterate through each points
+                      if (p.getBounds().contains(e.getPoint())) {//get the point bounds and check if mouse click was within its bounds
+                          p.setSelected(true);
+                          rootPoint.setX((double) e.getX());
+                          rootPoint.setY((double) e.getY());
+                          repaint(); //so point color change will be shown
+                      }
+                  }
+
+              }
+          });
+
+          addMouseListener(new MouseAdapter() {
+              @Override
+              public void mouseReleased(MouseEvent e) {
+                  for (Point p : listOfInterpolatedPoints) {//iterate through each points
+                      if (p.getBounds().contains(e.getPoint())) {//get the point bounds and check if mouse click was within its bounds
+                          p.setSelected(false);
+                          repaint(); //so point color change will be shown
+                      }
+                  }
+              }
+          });
 
 
-             }
+          addMouseMotionListener(new MouseMotionAdapter() {
+              @Override
+              public void mouseDragged(MouseEvent e) {
+                  double dx = e.getX() - rootPoint.getX();
+                  double dy = e.getY() - rootPoint.getY();
+
+                  for (Point p : listOfInterpolatedPoints) {//iterate through each points
+                      if (p.getBounds().contains(e.getPoint())) {//get the point bounds and check if mouse click was within its bounds
+                          p.setX(p.getX() + dx);
+                          p.setY(p.getY() + dy);
+                          repaint();
+                      }
+                  }
+
+                  rootPoint.setX(rootPoint.getX() + dx);
+                  rootPoint.setY(rootPoint.getY() + dy);
+
+                  generatePoints();
+                  calculateSpline();
+                  graphSpline();
+              }
 
           });
        }
 
        private void keyEvents(){
-          addKeyListener(new KeyAdapter() {
+          this.addKeyListener(new KeyAdapter() {
              @Override
              public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == 'u'){
@@ -221,7 +284,7 @@
 
           if (this.listOfInterpolatedPoints.size() >= 2){
              while (currentPoint < this.listOfInterpolatedPoints.size() - 1){
-                for (double x = (this.listOfInterpolatedPoints.get(currentPoint).getX()); x <= this.listOfInterpolatedPoints.get(currentPoint + 1).getX(); x += 0.05){
+                for (double x = (this.listOfInterpolatedPoints.get(currentPoint).getX()); x <= this.listOfInterpolatedPoints.get(currentPoint + 1).getX(); x += 2.5){
                    double y = (this.listOfFunctions.get(currentPoint).getA() * Math.pow(x ,3) +
                            this.listOfFunctions.get(currentPoint).getB() * Math.pow(x, 2) +
                            this.listOfFunctions.get(currentPoint).getC() * x +
