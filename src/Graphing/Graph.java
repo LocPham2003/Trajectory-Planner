@@ -7,11 +7,13 @@
     import com.company.SortByX;
 
     import javax.swing.*;
+    import javax.swing.border.Border;
     import java.awt.*;
     import java.awt.event.*;
     import java.io.FileWriter;
     import java.io.IOException;
     import java.util.ArrayList;
+    import java.util.Random;
 
     public class Graph extends JFrame implements ActionListener{
        private ArrayList<Point> listOfInterpolatedPoints = new ArrayList<>();
@@ -30,25 +32,18 @@
           setTitle("Trajectory");
           setSize(prevWidth, prevHeight);
 
-          JButton button = new JButton("Click Here..!");
-          button.setBounds(50,100,100,50); /*Distance from left,
-                      Distance from top,length of button, height of button*/
-          add(button);
-
           setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-
+          configureButtons();
           mouseEvents();
           keyEvents();
-
-          add(button);
 
           setResizable(true);
           setVisible(true);
 
        }
 
-       public void paint(Graphics g){
+        public void paint(Graphics g){
            if (!this.timer.isRunning()){
 
            g.clearRect(0,0,this.getWidth(), this.getHeight());
@@ -92,10 +87,44 @@
 
        }
 
+        private void configureButtons() {
+            JButton button = new JButton("Add new Point");
+            JPanel controlPanel = new JPanel();
+
+            button.setFocusable(false);
+            button.setVisible(true);
+
+            controlPanel.add(button);
+
+            add(controlPanel,BorderLayout.SOUTH);
+
+            button.addActionListener(e -> {
+                listOfFunctions.clear();
+
+                double pointRadius = 25.0;
+
+                Point newPoint = new Point();
+                newPoint.setX((double) getWidth() / 2);
+                newPoint.setY((double) getHeight() / 2);
+                newPoint.setRadius(pointRadius);
+
+                //check that we dont go offscreen by subtarcting its radius unless its x and y are not bigger than radius
+
+                button.setVisible(true);
+
+                listOfInterpolatedPoints.add(newPoint);//add ball to panel to be drawn
+
+                listOfUnsortedPoints.add(newPoint);
+
+                generatePoints();
+                calculateSpline();
+                graphSpline();
+            });
+        }
+
        private void mouseEvents(){
           addMouseListener(new MouseAdapter() {
              public void mouseClicked(MouseEvent me) {
-                listOfFunctions.clear();
 
                  for (Point p : listOfInterpolatedPoints) {//iterate through each points
                      if (p.getBounds().contains(me.getPoint())) {//get the point bounds and check if mouse click was within its bounds
@@ -108,22 +137,7 @@
                      }
                  }
 
-                double pointRadius = 25.0;
 
-                Point newPoint = new Point();
-                newPoint.setX((double) me.getX());
-                newPoint.setY((double) me.getY());
-                newPoint.setRadius(pointRadius);
-
-                 //check that we dont go offscreen by subtarcting its radius unless its x and y are not bigger than radius
-
-                listOfInterpolatedPoints.add(newPoint);//add ball to panel to be drawn
-
-                listOfUnsortedPoints.add(newPoint);
-
-                generatePoints();
-                calculateSpline();
-                graphSpline();
 
              }
 
@@ -133,11 +147,13 @@
        }
 
        private void keyEvents(){
-          addKeyListener(new KeyAdapter() {
+          this.addKeyListener(new KeyAdapter() {
              @Override
              public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == 'u'){
                     if (listOfInterpolatedPoints.size() > 1){
+
+                        System.out.println("hI");
 
                         listOfInterpolatedPoints.remove(listOfUnsortedPoints.get(listOfUnsortedPoints.size() - 1));
 
