@@ -98,6 +98,7 @@ public class DrawPanel extends JPanel implements ActionListener {
         this.mainView.setFocusable(true);
         this.mainView.requestFocusInWindow();
         this.mainView.requestFocus();
+
     }
 
     private void keyEvents() {
