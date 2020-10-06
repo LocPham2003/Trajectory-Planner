@@ -8,6 +8,7 @@ public class Point {
     private double y;
     private double radius;
     private boolean selected;
+    private double heading;
     private Color color;
 
     public void setX(Double x) {
@@ -22,6 +23,10 @@ public class Point {
         this.radius = radius;
     }
 
+    public void setHeading(double heading){
+        this.heading = heading;
+    }
+
     public double getX() {
         return x;
     }
@@ -32,6 +37,10 @@ public class Point {
 
     public double getRadius(){
         return this.radius;
+    }
+
+    public double getHeading() {
+        return heading;
     }
 
     public void draw(Graphics g2d) {

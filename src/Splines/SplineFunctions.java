@@ -40,6 +40,6 @@ public class SplineFunctions {
 
     @Override
     public String toString() {
-        return this.getA() + " " + this.getB() + " " + this.getC() + " " + getD();
+        return this.getA() + "x^3 " + this.getB() + "x^2 " + this.getC() + "x " + getD();
     }
 }

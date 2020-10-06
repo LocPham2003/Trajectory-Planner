@@ -4,7 +4,6 @@ import Matrices.Matrix;
 import Splines.NaturalCubicSpline;
 import Splines.SplineFunctions;
 import com.company.Constants;
-import com.company.SortByX;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,8 +11,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class DrawPanel extends JPanel implements ActionListener {
@@ -26,12 +23,10 @@ public class DrawPanel extends JPanel implements ActionListener {
 
     private JFrame mainView = new JFrame();
 
-    private int prevWidth = 1200;
-    private int prevHeight = 700;
-
     private int time = 0;
     private Timer timer = new Timer(Constants.timerDelay, this);
 
+    private NaturalCubicSpline naturalCubicSpline = new NaturalCubicSpline();
 
     void configurePanel(JFrame frame) {
         this.mainView = frame;
@@ -41,6 +36,8 @@ public class DrawPanel extends JPanel implements ActionListener {
 
     @Override
     public Dimension getPreferredSize() {
+        int prevWidth = 1200;
+        int prevHeight = 700;
         return new Dimension(prevWidth, prevHeight);
     }
 
@@ -62,22 +59,27 @@ public class DrawPanel extends JPanel implements ActionListener {
                 System.out.println("bro");
             }
 
-            for (Point i : this.splinePoints) {
-                i.setX(i.getX());
-                i.setY(i.getY());
-                g.fillOval((int) (i.getX()), (int) (i.getY()), 25, 25);
-            }
-
             for (Point i : this.listOfInterpolatedPoints) {
                 i.setX(i.getX());
                 i.setY(i.getY());
                 i.draw(g);
             }
 
-            if (this.splinePoints.size() >= 1) {
-                g.setColor(Color.cyan);
-                g.fillOval((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25, 25);
+            g.setColor(Color.blue);
+
+            for (Point i : this.splinePoints) {
+                i.setX(i.getX());
+                i.setY(i.getY());
+
+                Rectangle rectangle = new Rectangle((int) (i.getX()), (int) (i.getY()), 25, 25);
+
+                g.fill(rectangle);
             }
+
+//            if (this.splinePoints.size() >= 1) {
+//                g.setColor(Color.cyan);
+//                g.fillOval((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25, 25);
+//            }
 
         } else {
             try {
@@ -89,7 +91,12 @@ public class DrawPanel extends JPanel implements ActionListener {
                 System.out.println("bro");
             }
             g.setColor(Color.cyan);
-            g.fillOval((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25, 25);
+
+            Rectangle rectangle = new Rectangle((int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()), 25, 25);
+
+            g.rotate(Math.toDegrees(2), (int) (this.splinePoints.get(time).getX()), (int) (this.splinePoints.get(time).getY()));
+            g.draw(rectangle);
+
         }
 
     }
@@ -140,7 +147,7 @@ public class DrawPanel extends JPanel implements ActionListener {
             }
         }
 
-        generatePoints();
+        naturalCubicSpline.generatePoints(this.listOfInterpolatedPoints);
         calculateSpline();
         graphSpline();
 
@@ -168,7 +175,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 
             listOfUnsortedPoints.remove(listOfUnsortedPoints.size() - 1);
 
-            generatePoints();
+            naturalCubicSpline.generatePoints(this.listOfInterpolatedPoints);
             calculateSpline();
             graphSpline();
 
@@ -199,7 +206,7 @@ public class DrawPanel extends JPanel implements ActionListener {
 
         listOfUnsortedPoints.add(newPoint);
 
-        generatePoints();
+        naturalCubicSpline.generatePoints(this.listOfInterpolatedPoints);
         calculateSpline();
         graphSpline();
     }
@@ -265,7 +272,7 @@ public class DrawPanel extends JPanel implements ActionListener {
                 rootPoint.setX(rootPoint.getX() + dx);
                 rootPoint.setY(rootPoint.getY() + dy);
 
-                generatePoints();
+                naturalCubicSpline.generatePoints(listOfInterpolatedPoints);
                 calculateSpline();
                 graphSpline();
             }
@@ -273,28 +280,9 @@ public class DrawPanel extends JPanel implements ActionListener {
         });
     }
 
-    private void generatePoints() {
-        try {
-            FileWriter fileWriter = new FileWriter("Points.txt");
-
-            StringBuilder stringBuilder = new StringBuilder();
-
-            this.listOfInterpolatedPoints.sort(new SortByX());
-
-            for (Point i : this.listOfInterpolatedPoints) {
-                stringBuilder.append(i.getX()).append(",").append(i.getY()).append("\n");
-            }
-
-            fileWriter.write(stringBuilder.toString());
-            fileWriter.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     //Generate spline graph
+    //Consider putting these into naturalCubicSplines classes
     private void calculateSpline() {
         NaturalCubicSpline naturalCubicSpline = new NaturalCubicSpline();
         Matrix matrix = new Matrix();
@@ -346,15 +334,18 @@ public class DrawPanel extends JPanel implements ActionListener {
 
         if (this.listOfInterpolatedPoints.size() >= 2) {
             while (currentPoint < this.listOfInterpolatedPoints.size() - 1) {
-                for (double x = (this.listOfInterpolatedPoints.get(currentPoint).getX()); x <= this.listOfInterpolatedPoints.get(currentPoint + 1).getX(); x += 0.1) {
+                for (double x = (this.listOfInterpolatedPoints.get(currentPoint).getX()); x <= this.listOfInterpolatedPoints.get(currentPoint + 1).getX(); x += 1) {
                     double y = (this.listOfFunctions.get(currentPoint).getA() * Math.pow(x, 3) +
                             this.listOfFunctions.get(currentPoint).getB() * Math.pow(x, 2) +
                             this.listOfFunctions.get(currentPoint).getC() * x +
                             this.listOfFunctions.get(currentPoint).getD());
 
+                    double heading = 0;
+
                     Point point = new Point();
                     point.setY(y);
                     point.setX(x);
+                    point.setHeading(heading);
 
                     this.splinePoints.add(point);
 

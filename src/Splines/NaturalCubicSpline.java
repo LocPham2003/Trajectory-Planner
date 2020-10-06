@@ -3,6 +3,7 @@ package Splines;
 
 import Graphing.Point;
 import com.company.Constants;
+import com.company.SortByX;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -19,6 +20,27 @@ public class NaturalCubicSpline {
 
     private int numberOfUnknownCoefficients = 0;
     private int numberOfSplinesRequired = 0;
+
+
+    public void generatePoints(ArrayList<Point> listOfConnectingPoints){
+        try {
+            FileWriter fileWriter = new FileWriter("Points.txt");
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            listOfConnectingPoints.sort(new SortByX());
+
+            for (Point i : listOfConnectingPoints) {
+                stringBuilder.append(i.getX()).append(",").append(i.getY()).append("\n");
+            }
+
+            fileWriter.write(stringBuilder.toString());
+            fileWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void getListOfPoints() {
         try {
@@ -86,7 +108,7 @@ public class NaturalCubicSpline {
         getListOfPoints();
 
         if (this.listOfPoints.size() <= 1){
-            System.out.println("Invalid number of points, unable to interpolate");
+            //System.out.println("Invalid number of points, unable to interpolate");
             return false;
         } else {
             searchForConnectingPoints();
@@ -154,6 +176,8 @@ public class NaturalCubicSpline {
 
 
     }
+
+
 
     private void searchForConnectingPoints() {
         ArrayList<Point> connectingPoints = new ArrayList<>();
